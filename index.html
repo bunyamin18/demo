@@ -1,1 +1,542 @@
-kdjd
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Liste - Liste Yönetim Uygulaması</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-brand">
+                <h1>📋 Akıllı Liste</h1>
+            </div>
+            <div class="nav-buttons">
+                <button class="nav-btn compact" onclick="showSection('home')">🏠 Ana Sayfa</button>
+                <button class="nav-btn compact" onclick="checkAuthAndRedirect('create-list')">➕ Liste Oluştur</button>
+                <button class="nav-btn compact" onclick="navigateToSection('guide-home')">📖 Kılavuz</button>
+                <button class="nav-btn compact" onclick="navigateToSection('contact-home')">📞 İletişim</button>
+                <button class="nav-btn compact" onclick="showSection('subscription')">💎 Premium</button>
+
+                <!-- Theme Toggle -->
+                <div class="theme-toggle-container">
+                    <div class="theme-switch" onclick="toggleTheme()">
+                        <div class="theme-display">
+                            <img id="theme-icon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z'/%3E%3C/svg%3E" alt="Light">
+                        </div>
+                        <div class="theme-icons">
+                            <img class="theme-icon sun" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%23FFA500'%3E%3Cpath d='M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z'/%3E%3C/svg%3E" alt="Light">
+                            <img class="theme-icon moon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='%234A90E2'%3E%3Cpath d='M11.38 2.019a7.5 7.5 0 1 0 10.6 10.6C21.662 17.854 17.316 22 12.001 22 6.477 22 2 17.523 2 12c0-5.315 4.146-9.661 9.38-9.981z'/%3E%3C/svg%3E" alt="Dark">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auth Buttons -->
+                <div id="authButtons">
+                    <button class="nav-btn" onclick="showSection('auth')" id="loginBtn">🔐 Giriş</button>
+                </div>
+
+                <!-- User Menu -->
+                <div id="userMenu" class="user-menu" style="display:none;">
+                    <button class="nav-btn user-btn" onclick="toggleUserDropdown()">
+                        <span id="userEmailShort"></span> ▼
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="#" onclick="showSection('account')">👤 Hesabım</a>
+                        <a href="#" onclick="showSection('my-lists')">📋 Listelerim</a>
+                        <a href="#" onclick="showSection('subscription')">💎 Premium</a>
+                        <a href="#" onclick="logout()">🚪 Çıkış</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Ad Banner -->
+        <div class="ad-banner" id="topAdBanner">
+            <div class="ad-content">
+                <p>🎯 Özel Teklif! Premium üyelikte ilk ay %50 İndirim - <a href="#" onclick="showSection('subscription')">Hemen Al</a></p>
+                <button class="ad-close-btn" onclick="closeAd('topAdBanner')" title="Reklamı Kapat">✕</button>
+            </div>
+        </div>
+
+        <!-- Home Section -->
+        <div id="home-section" class="section" style="display: block;">
+            <div class="hero-section">
+                <h2>Hayatınızı Organize Edin</h2>
+                <p>Alışveriş, yapılacaklar ve laboratuvar listelerinizi akıllıca yönetin</p>
+                <button class="cta-button" onclick="checkAuthAndRedirect('create-list')">🚀 Hemen Başla</button>
+            </div>
+
+
+
+            <!-- Side Ad -->
+            <div class="side-ad" id="sideAdBanner">
+                <button class="ad-close-btn side-ad-close" onclick="closeAd('sideAdBanner')" title="Reklamı Kapat">✕</button>
+                <h4>📢 Sponsor</h4>
+                <div class="ad-placeholder">
+                    <p>🛒 TechMarket</p>
+                    <p>Teknoloji ürünlerinde en uygun fiyatlar!</p>
+                    <button class="ad-btn">İncele</button>
+                </div>
+            </div>
+
+            <!-- Guide Section on Home -->
+            <div id="guide-home" class="home-section-block">
+                <div class="container">
+                    <h2>📖 Kullanım Kılavuzu</h2>
+                    <div class="guide-detailed">
+                        <div class="guide-section-home">
+                            <h3>🚀 Hızlı Başlangıç</h3>
+                            <div class="guide-steps">
+                                <div class="step">
+                                    <span class="step-number">1</span>
+                                    <div class="step-content">
+                                        <h4>Hesap Oluşturun</h4>
+                                        <p>Sağ üstteki "🔐 Giriş" butonuna tıklayarak hesap oluşturun. E-posta adresinizi mutlaka doğrulayın.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">2</span>
+                                    <div class="step-content">
+                                        <h4>Liste Türü Seçin</h4>
+                                        <p>"🚀 Hemen Başla" butonuna tıklayarak liste türünüzü seçin: Alışveriş, Yapılacaklar veya Laboratuvar.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">3</span>
+                                    <div class="step-content">
+                                        <h4>Liste Oluşturun</h4>
+                                        <p>Liste adını yazın, öğelerinizi ekleyin ve isteğe bağlı olarak görsel ekleyin.</p>
+                                    </div>
+                                </div>
+                                <div class="step">
+                                    <span class="step-number">4</span>
+                                    <div class="step-content">
+                                        <h4>Paylaşın</h4>
+                                        <p>Listeyi kaydettikten sonra QR kod oluşturarak arkadaşlarınızla paylaşabilirsiniz.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="guide-section-home">
+                            <h3>📝 Liste Türleri</h3>
+                            <div class="list-types-guide">
+                                <div class="type-guide">
+                                    <h4>🛒 Alışveriş Listesi</h4>
+                                    <ul>
+                                        <li>Ürün adı ve miktarı ekleyebilirsiniz</li>
+                                        <li>Market kategorilerine göre organize edilir</li>
+                                        <li>Alışveriş yaparken pratik kullanım</li>
+                                        <li>Tamamlanan ürünleri işaretleyebilirsiniz</li>
+                                    </ul>
+                                </div>
+                                <div class="type-guide">
+                                    <h4>✅ Yapılacaklar Listesi</h4>
+                                    <ul>
+                                        <li>Görev adı ve öncelik seviyesi belirleyebilirsiniz</li>
+                                        <li>Tamamlanan görevler üzeri çizilir</li>
+                                        <li>Yüksek, orta, düşük öncelik seviyeleri</li>
+                                        <li>Günlük, haftalık veya aylık planlama için ideal</li>
+                                    </ul>
+                                </div>
+                                <div class="type-guide">
+                                    <h4>🧪 Laboratuvar Listesi</h4>
+                                    <ul>
+                                        <li>Malzeme adı, miktar ve birim fiyat girebilirsiniz</li>
+                                        <li>Otomatik toplam maliyet hesaplaması</li>
+                                        <li>Bilimsel çalışmalar ve araştırmalar için</li>
+                                        <li>Detaylı maliyet analizi</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="guide-section-home">
+                            <h3>💡 İpuçları</h3>
+                            <div class="tips">
+                                <div class="tip">
+                                    <strong>📱 QR Kod Paylaşımı:</strong> Listelerinizi kaydettikten sonra QR kod oluşturarak başkalarıyla anında paylaşabilirsiniz.
+                                </div>
+                                <div class="tip">
+                                    <strong>📸 Görsel Ekleme:</strong> Her liste öğesine resim ekleyerek daha detaylı ve görsel listeler oluşturabilirsiniz.
+                                </div>
+                                <div class="tip">
+                                    <strong>☁️ Otomatik Kaydetme:</strong> Tüm listeleriniz bulutta güvenle saklanır ve cihazlar arası senkronize edilir.
+                                </div>
+                                <div class="tip">
+                                    <strong>💎 Premium Avantajları:</strong> Premium üyelikle sınırsız liste oluşturabilir ve gelişmiş özelliklere erişebilirsiniz.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Section on Home -->
+            <div id="contact-home" class="home-section-block">
+                <div class="container">
+                    <h2>📞 İletişim</h2>
+                    <div class="contact-content">
+                        <div class="contact-info-home">
+                            <p><strong>📧 E-posta:</strong> <a href="mailto:ebunyamin0@gmail.com">ebunyamin0@gmail.com</a></p>
+                            <p>Herhangi bir sorunuz veya öneriniz için bize ulaşabilirsiniz.</p>
+                        </div>
+                        <div class="contact-form-compact">
+                            <form id="contactFormHome" class="contact-form">
+                                <input type="text" id="contactNameHome" placeholder="👤 Adınız" required class="form-input compact">
+                                <input type="email" id="contactEmailHome" placeholder="📧 E-posta" required class="form-input compact">
+                                <select id="contactSubjectHome" required class="form-input compact">
+                                    <option value="">📋 Konu seçin</option>
+                                    <option value="technical">🔧 Teknik Destek</option>
+                                    <option value="billing">💳 Faturalandırma</option>
+                                    <option value="feature">💡 Özellik Önerisi</option>
+                                    <option value="bug">🐛 Hata Bildirimi</option>
+                                </select>
+                                <textarea id="contactMessageHome" placeholder="💬 Mesajınız..." required class="form-textarea compact"></textarea>
+                                <button type="submit" class="submit-btn compact">📤 Gönder</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auth Section -->
+        <div id="auth-section" class="section">
+            <div class="container">
+                <div class="auth-container">
+                    <div class="auth-tabs">
+                        <button class="auth-tab active" onclick="showAuthTab('login')">Giriş Yap</button>
+                        <button class="auth-tab" onclick="showAuthTab('register')">Kayıt Ol</button>
+                    </div>
+
+                    <div id="login-section" class="auth-section">
+                        <h2>🔐 Giriş Yap</h2>
+                        <form id="loginForm">
+                            <input type="email" id="loginEmail" placeholder="📧 E-posta adresiniz" required class="form-input">
+                            <input type="password" id="loginPassword" placeholder="🔒 Şifreniz" required class="form-input">
+                            <button type="submit" class="submit-btn">Giriş Yap</button>
+                        </form>
+                        <p class="auth-link">
+                            <a href="#" onclick="showForgotPassword()">Şifremi unuttum</a>
+                        </p>
+                    </div>
+
+                    <div id="register-section" class="auth-section" style="display:none;">
+                        <h2>📝 Kayıt Ol</h2>
+                        <form id="registerForm">
+                            <input type="text" id="registerName" placeholder="👤 Adınız Soyadınız" required class="form-input">
+                            <input type="email" id="registerEmail" placeholder="📧 E-posta adresiniz" required class="form-input">
+                            <input type="password" id="registerPassword" placeholder="🔒 Şifreniz (min. 6 karakter)" required class="form-input">
+                            <input type="password" id="registerPasswordConfirm" placeholder="🔒 Şifrenizi tekrar girin" required class="form-input">
+                            <button type="submit" class="submit-btn">Kayıt Ol</button>
+                        </form>
+                    </div>
+
+                    <div id="email-verification" class="auth-section" style="display:none;">
+                        <h2>📧 E-posta Doğrulama</h2>
+                        <p>E-posta adresinize doğrulama bağlantısı gönderdik. Lütfen e-postanızı kontrol edin ve bağlantıya tıklayın.</p>
+                        <button onclick="sendEmailVerification()" class="submit-btn">Tekrar Gönder</button>
+                        <button onclick="checkEmailVerification()" class="submit-btn">Doğruladım</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- List Type Selection -->
+        <div id="list-type-section" class="section">
+            <div class="container">
+                <h2>Liste Türü Seçin</h2>
+                <div class="list-types">
+                    <div class="list-type-card" onclick="selectListType('shopping')">
+                        <div class="list-type-icon">🛒</div>
+                        <h3>Alışveriş Listesi</h3>
+                        <p>Ürün adı ve miktarı ile organize alışveriş</p>
+                        <ul>
+                            <li>✓ Ürün adı</li>
+                            <li>✓ Miktar bilgisi</li>
+                            <li>✓ Kategori gruplandırma</li>
+                        </ul>
+                    </div>
+
+                    <div class="list-type-card" onclick="selectListType('todo')">
+                        <div class="list-type-icon">✅</div>
+                        <h3>Yapılacaklar Listesi</h3>
+                        <p>Görevlerinizi takip edin ve tamamlayın</p>
+                        <ul>
+                            <li>✓ Görev adı</li>
+                            <li>✓ Tamamlandı işaretleme</li>
+                            <li>✓ Öncelik belirleme</li>
+                        </ul>
+                    </div>
+
+                    <div class="list-type-card" onclick="selectListType('lab')">
+                        <div class="list-type-icon">🧪</div>
+                        <h3>Laboratuvar Listesi</h3>
+                        <p>Detaylı malzeme ve değer takibi</p>
+                        <ul>
+                            <li>✓ Malzeme adı</li>
+                            <li>✓ Miktar bilgisi</li>
+                            <li>✓ Değer hesaplama</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create List Section -->
+        <div id="create-list-section" class="section">
+            <div class="container">
+                <div class="list-header">
+                    <button onclick="showSection('list-type')" class="back-btn">← Geri</button>
+                    <h2 id="createListTitle">Yeni Liste Oluştur</h2>
+                </div>
+
+                <div class="list-form">
+                    <input type="text" id="listName" placeholder="Liste adı girin" class="form-input">
+
+                    <div class="image-upload">
+                        <label for="listImage" class="image-label">
+                            📷 Liste Görseli Ekle
+                            <input type="file" id="listImage" accept="image/*" style="display:none;">
+                        </label>
+                        <div id="imagePreview" class="image-preview"></div>
+                    </div>
+
+                    <div id="itemInputSection" class="item-input-section">
+                        <!-- Dynamic content based on list type -->
+                    </div>
+
+                    <ul id="itemsList" class="items-list"></ul>
+
+                    <div class="form-actions">
+                        <button onclick="saveList()" class="save-btn">💾 Listeyi Kaydet</button>
+                        <button onclick="clearList()" class="clear-btn">🗑️ Temizle</button>
+                    </div>
+                </div>
+
+                <div id="qrSection" class="qr-section" style="display:none;">
+                    <h3>QR Kod</h3>
+                    <div id="qrcode"></div>
+                    <p>Bu QR kodu taratarak listeyi görüntüleyebilirsiniz</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Lists Section -->
+        <div id="my-lists-section" class="section">
+            <div class="container">
+                <h2>📋 Listelerim</h2>
+                <div class="lists-filter">
+                    <button class="filter-btn active" onclick="filterLists('all')">Tümü</button>
+                    <button class="filter-btn" onclick="filterLists('shopping')">🛒 Alışveriş</button>
+                    <button class="filter-btn" onclick="filterLists('todo')">✅ Yapılacaklar</button>
+                    <button class="filter-btn" onclick="filterLists('lab')">🧪 Laboratuvar</button>
+                </div>
+                <div id="listsContainer" class="lists-container">
+                    <!-- Lists will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Section -->
+        <div id="account-section" class="section">
+            <div class="container">
+                <h2>👤 Hesap Yönetimi</h2>
+
+                <div id="userProfile" class="profile-section">
+                    <div class="profile-info">
+                        <h3>Profil Bilgileri</h3>
+                        <p><strong>E-posta:</strong> <span id="profileEmail"></span></p>
+                        <p><strong>Üyelik:</strong> <span id="membershipType">Ücretsiz</span></p>
+                        <p><strong>Liste Sayısı:</strong> <span id="listCount">0</span></p>
+                    </div>
+
+                    <div class="profile-actions">
+                        <button onclick="showSection('subscription')" class="premium-btn">💎 Premium'a Geç</button>
+                        <button onclick="changePassword()" class="change-password-btn">🔒 Şifre Değiştir</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subscription Section -->
+        <div id="subscription-section" class="section">
+            <div class="container">
+                <h2>💎 Premium Üyelik</h2>
+
+                <div class="pricing-section">
+                    <div class="pricing-card free">
+                        <h3>🆓 Ücretsiz</h3>
+                        <div class="price">₺0<span>/ay</span></div>
+                        <ul class="features">
+                            <li>✓ 1 Liste</li>
+                            <li>✓ Temel özellikler</li>
+                            <li>✓ QR kod paylaşım</li>
+                            <li>❌ Sınırsız liste</li>
+                            <li>❌ Gelişmiş özellikler</li>
+                        </ul>
+                        <button class="plan-btn disabled">Mevcut Plan</button>
+                    </div>
+
+                    <div class="pricing-card premium">
+                        <div class="popular-badge">Popüler</div>
+                        <h3>💎 Premium Aylık</h3>
+                        <div class="price">₺39<span>/ay</span></div>
+                        <ul class="features">
+                            <li>✓ Sınırsız liste</li>
+                            <li>✓ Tüm liste türleri</li>
+                            <li>✓ Görsel ekleme</li>
+                            <li>✓ Gelişmiş paylaşım</li>
+                            <li>✓ Öncelikli destek</li>
+                        </ul>
+                        <button class="plan-btn" onclick="selectPlan('monthly')">Seç</button>
+                    </div>
+
+                    <div class="pricing-card premium-yearly">
+                        <div class="discount-badge">%26 İndirim</div>
+                        <h3>💎 Premium Yıllık</h3>
+                        <div class="price">₺29<span>/ay</span></div>
+                        <div class="yearly-price">₺348/yıl (₺468 yerine)</div>
+                        <ul class="features">
+                            <li>✓ Sınırsız liste</li>
+                            <li>✓ Tüm liste türleri</li>
+                            <li>✓ Görsel ekleme</li>
+                            <li>✓ Gelişmiş paylaşım</li>
+                            <li>✓ Öncelikli destek</li>
+                        </ul>
+                        <button class="plan-btn featured" onclick="selectPlan('yearly')">En Avantajlı</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div id="guide-section" class="section">
+            <div class="container">
+                <h2>📖 Kullanım Kılavuzu</h2>
+                <div class="guide-content">
+                    <div class="guide-section">
+                        <h3>🏠 Başlangıç</h3>
+                        <div class="guide-step">
+                            <h4>1. Hesap Oluşturma</h4>
+                            <p>Ücretsiz hesabınızı oluşturun ve e-posta adresinizi doğrulayın.</p>
+                        </div>
+                        <div class="guide-step">
+                            <h4>2. Liste Türü Seçimi</h4>
+                            <p>İhtiyacınıza göre alışveriş, yapılacaklar veya laboratuvar listesi seçin.</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>🛒 Alışveriş Listesi</h3>
+                        <div class="guide-step">
+                            <h4>Ürün Ekleme</h4>
+                            <p>Ürün adını ve miktarını belirterek organize alışveriş listesi oluşturun.</p>
+                        </div>
+                        <div class="guide-step">
+                            <h4>Kategori Gruplandırma</h4>
+                            <p>Ürünleri kategorilere göre gruplandırarak market gezinizi optimize edin.</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>✅ Yapılacaklar Listesi</h3>
+                        <div class="guide-step">
+                            <h4>Görev Ekleme</h4>
+                            <p>Yapılacak görevleri ekleyin ve öncelik seviyesi belirleyin.</p>
+                        </div>
+                        <div class="guide-step">
+                            <h4>Tamamlama</h4>
+                            <p>Tamamladığınız görevleri işaretleyin ve ilerlemenizi takip edin.</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>🧪 Laboratuvar Listesi</h3>
+                        <div class="guide-step">
+                            <h4>Malzeme Yönetimi</h4>
+                            <p>Malzeme adı, miktar ve değer bilgilerini detaylıca kaydedin.</p>
+                        </div>
+                        <div class="guide-step">
+                            <h4>Hesaplama</h4>
+                            <p>Toplam değer hesaplamaları otomatik olarak yapılır.</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-section">
+                        <h3>📱 Paylaşım ve QR Kod</h3>
+                        <div class="guide-step">
+                            <h4>QR Kod Oluşturma</h4>
+                            <p>Listelerinizi kaydettikten sonra QR kod oluşturup paylaşabilirsiniz.</p>
+                        </div>
+                        <div class="guide-step">
+                            <h4>Paylaşım</h4>
+                            <p>QR kodu taratarak başkaları listenizi görüntüleyebilir.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div id="contact-section" class="section">
+            <div class="container">
+                <h2>📞 İletişim</h2>
+
+                <div class="contact-info">
+                    <p><strong>📧 E-posta:</strong> <a href="mailto:ebunyamin0@gmail.com">ebunyamin0@gmail.com</a></p>
+                </div>
+
+                <form id="contactForm" class="contact-form">
+                    <input type="text" id="contactName" placeholder="👤 Adınız Soyadınız" required class="form-input">
+                    <input type="email" id="contactEmail" placeholder="📧 E-posta adresiniz" required class="form-input">
+
+                    <select id="contactSubject" required class="form-input">
+                        <option value="">📋 Konu seçin</option>
+                        <option value="technical">🔧 Teknik Destek</option>
+                        <option value="billing">💳 Faturalandırma</option>
+                        <option value="feature">💡 Özellik Önerisi</option>
+                        <option value="bug">🐛 Hata Bildirimi</option>
+                        <option value="other">📝 Diğer</option>
+                    </select>
+
+                    <textarea id="contactMessage" placeholder="💬 Mesajınızı yazın..." required class="form-textarea"></textarea>
+                    <button type="submit" class="submit-btn">📤 Gönder</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- View List Section -->
+        <div id="view-list-section" class="section">
+            <div class="container">
+                <div class="list-header">
+                    <button onclick="showSection('my-lists')" class="back-btn">← Geri</button>
+                    <h2 id="viewListTitle">Liste Görünümü</h2>
+                </div>
+                <div id="viewListContent" class="list-content">
+                    <!-- List content will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Ad -->
+        <div class="footer-ad" id="footerAdBanner">
+            <div class="ad-content">
+                <p>🎯 Akıllı alışveriş için Premium'a geçin - <a href="#" onclick="showSection('subscription')">%50 indirimli başla</a></p>
+                <button class="ad-close-btn" onclick="closeAd('footerAdBanner')" title="Reklamı Kapat">✕</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

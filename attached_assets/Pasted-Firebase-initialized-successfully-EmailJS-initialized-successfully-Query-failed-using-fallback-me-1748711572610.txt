@@ -1,0 +1,40 @@
+Firebase initialized successfully
+EmailJS initialized successfully
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
+Trying QR library source 1/3: https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js
+Failed to load QRCode library from https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js
+Trying QR library source 2/3: https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js
+Failed to load QRCode library from https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js
+Trying QR library source 3/3: https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js
+Failed to load QRCode library from https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
+Trying QR library source 1/3: https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js
+Failed to load QRCode library from https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js
+Trying QR library source 2/3: https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js
+Failed to load QRCode library from https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js
+Trying QR library source 3/3: https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js
+Failed to load QRCode library from https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+QR library loading timeout, trying next source
+All QR library sources failed, using fallback
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
+Query failed, using fallback method: 
+d {code: "failed-precondition", customData: undefined, name: "FirebaseError", toString: ƒ}
